@@ -318,7 +318,20 @@ sub GetUserData {
                 Day   => $Preferences{OutOfOfficeEndDay},
                 Time  => '23:59:59',
             );
-
+# Rother OSS / PreOutOfOfficeMessage
+#            if ( $TimeStartObj < $CurrentTimeObject && $TimeEndObj > $CurrentTimeObject ) {
+#                my $OutOfOfficeMessageTemplate =
+#                    $ConfigObject->Get('OutOfOfficeMessageTemplate') || '*** out of office until %s (%s d left) ***';
+#                my $TillDate = sprintf(
+#                    '%04d-%02d-%02d',
+#                    $Preferences{OutOfOfficeEndYear},
+#                    $Preferences{OutOfOfficeEndMonth},
+#                    $Preferences{OutOfOfficeEndDay}
+#                );
+#                my $Till = int( ( $TimeEndObj->ToEpoch() - $CurrentTimeObject->ToEpoch() ) / 60 / 60 / 24 );
+#                $Preferences{OutOfOfficeMessage} = sprintf( $OutOfOfficeMessageTemplate, $TillDate, $Till );
+#                $Data{UserFullname} .= ' ' . $Preferences{OutOfOfficeMessage};
+#            }
             if ( $TimeEndObj > $CurrentTimeObject ) {
                 if ( $TimeStartObj < $CurrentTimeObject ) {
                     my $OutOfOfficeMessageTemplate =
@@ -358,7 +371,7 @@ sub GetUserData {
                     }
                 }
             }
-
+# EO PreOutOfOfficeMessage
             # Reduce CacheTTL to one hour for users that are out of office to make sure the cache expires timely
             #   even if there is no update action.
             $CacheTTL = 60 * 60 * 1;

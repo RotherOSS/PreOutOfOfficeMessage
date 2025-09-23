@@ -31,7 +31,7 @@ Not applicable
 
 Basic Configuration
 -------------------
-Open the Package Manager module from the Administration group in the Agent Interface. Select the package named PreOutOfOfficeMessage from the Online Repository. Click the associated  *Install* link on that line and respond affirmatively to any confirmation questions that follow.
+After installation, if the DaysInAdvance system configuration setting is enabled and set to a value greater than zero, the message alerting in advance of the out-of-office status is automatically shown as part of the user name.
 
 Custom Configuration and Advanced Features
 ------------------------------------------

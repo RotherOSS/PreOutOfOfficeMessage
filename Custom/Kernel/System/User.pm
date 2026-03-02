@@ -366,10 +366,8 @@ sub GetUserData {
                             $Preferences{OutOfOfficeEndMonth},
                             $Preferences{OutOfOfficeEndDay}
                         );
-
-                        # we do not set OutOfOfficeMessage because we don't want effects like ticket unlocks
-                        # we only add the indication to the name
-                        $Data{UserFullname} .= ' ' . sprintf( $PreOutOfOfficeMessageTemplate, $FromDate, $TillDate );
+                        $Preferences{OutOfOfficeMessage} = sprintf( $PreOutOfOfficeMessageTemplate, $FromDate, $TillDate );
+                        $Data{UserFullname} .= ' ' . $Preferences{OutOfOfficeMessage};
                     }
                 }
             }

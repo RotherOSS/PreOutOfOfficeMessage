@@ -366,8 +366,8 @@ sub GetUserData {
                             $Preferences{OutOfOfficeEndMonth},
                             $Preferences{OutOfOfficeEndDay}
                         );
-                        $Preferences{OutOfOfficeMessage} = sprintf( $PreOutOfOfficeMessageTemplate, $FromDate, $TillDate );
-                        $Data{UserFullname} .= ' ' . $Preferences{OutOfOfficeMessage};
+                        $Preferences{PreOutOfOfficeMessage} = sprintf( $PreOutOfOfficeMessageTemplate, $FromDate, $TillDate );
+                        $Data{UserFullname} .= ' ' . $Preferences{PreOutOfOfficeMessage};
                     }
                 }
             }
@@ -1237,6 +1237,11 @@ sub UserList {
             if ( $User{OutOfOfficeMessage} ) {
                 $Users{$UserID} .= ' ' . $User{OutOfOfficeMessage};
             }
+# Rother OSS / PreOutOfOfficeMessage
+            elsif ( $User{PreOutOfOfficeMessage} ) {
+                $Users{$UserID} .= ' ' . $User{PreOutOfOfficeMessage};
+            }
+# EO PreOutOfOfficeMessage
         }
     }
 

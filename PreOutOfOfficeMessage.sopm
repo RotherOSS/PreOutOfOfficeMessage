@@ -12,4 +12,3 @@
         <File Permission="660" Location="Kernel/Config/Files/XML/PreOutOfOfficeMessage.xml" />
     </Filelist>
 </otobo_package>
-

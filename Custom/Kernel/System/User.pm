@@ -2,7 +2,9 @@
 # OTOBO is a web-based ticketing system for service organisations.
 # --
 # Copyright (C) 2001-2020 OTRS AG, https://otrs.com/
-# Copyright (C) 2019-2025 Rother OSS GmbH, https://otobo.io/
+# Copyright (C) 2019-2026 Rother OSS GmbH, https://otobo.io/
+# --
+# $origin: otobo - deb99d60daf212ae73ec7feb78074f3f7ae563f8 - Kernel/System/User.pm
 # --
 # This program is free software: you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -16,6 +18,7 @@
 
 package Kernel::System::User;
 
+use v5.24;
 use strict;
 use warnings;
 
@@ -114,51 +117,45 @@ sub GetUserData {
             Priority => 'error',
             Message  => 'Need User or UserID!',
         );
+
         return;
     }
 
-    # get config object
     my $ConfigObject = $Kernel::OM->Get('Kernel::Config');
 
     # get configuration for the full name order
     my $FirstnameLastNameOrder = $ConfigObject->Get('FirstnameLastnameOrder') || 0;
 
-    # check if result is cached
-    if ( $Param{Valid} ) {
-        $Param{Valid} = 1;
-    }
-    else {
-        $Param{Valid} = 0;
-    }
-    if ( $Param{NoOutOfOffice} ) {
-        $Param{NoOutOfOffice} = 1;
-    }
-    else {
-        $Param{NoOutOfOffice} = 0;
-    }
+    # normalize input
+    my $RequireValidity = $Param{Valid}         ? 1 : 0;
+    my $NoOutOfOffice   = $Param{NoOutOfOffice} ? 1 : 0;
 
+    # check if result is cached
     my $CacheKey;
     if ( $Param{User} ) {
         $CacheKey = join '::', 'GetUserData', 'User',
             $Param{User},
-            $Param{Valid},
+            $RequireValidity,
             $FirstnameLastNameOrder,
-            $Param{NoOutOfOffice};
+            $NoOutOfOffice;
     }
     else {
         $CacheKey = join '::', 'GetUserData', 'UserID',
             $Param{UserID},
-            $Param{Valid},
+            $RequireValidity,
             $FirstnameLastNameOrder,
-            $Param{NoOutOfOffice};
+            $NoOutOfOffice;
     }
 
     # check cache
-    my $Cache = $Kernel::OM->Get('Kernel::System::Cache')->Get(
-        Type => $Self->{CacheType},
-        Key  => $CacheKey,
-    );
-    return %{$Cache} if $Cache;
+    {
+        my $Cache = $Kernel::OM->Get('Kernel::System::Cache')->Get(
+            Type => $Self->{CacheType},
+            Key  => $CacheKey,
+        );
+
+        return $Cache->%* if $Cache;
+    }
 
     # get initial data
     my @Bind;
@@ -179,7 +176,7 @@ sub GetUserData {
     # get database object
     my $DBObject = $Kernel::OM->Get('Kernel::System::DB');
 
-    return if !$DBObject->Prepare(
+    return unless $DBObject->Prepare(
         SQL   => $SQL,
         Bind  => \@Bind,
         Limit => 1,
@@ -205,6 +202,7 @@ sub GetUserData {
                 Priority => 'notice',
                 Message  => "No UserData for user: '$Param{User}'.",
             );
+
             return;
         }
         else {
@@ -212,6 +210,7 @@ sub GetUserData {
                 Priority => 'notice',
                 Message  => "No UserData for user id: '$Param{UserID}'.",
             );
+
             return;
         }
     }
@@ -220,17 +219,19 @@ sub GetUserData {
     my $CacheTTL = $Self->{CacheTTL};
 
     # check valid, return if there is locked for valid users
-    if ( $Param{Valid} ) {
+    if ($RequireValidity) {
 
-        my $Hit = 0;
+        my $IsValid = 0;
+        VALID_ID:
+        for my $ValidID ( $Kernel::OM->Get('Kernel::System::Valid')->ValidIDsGet() ) {
+            next VALID_ID unless $Data{ValidID} eq $ValidID;
 
-        for ( $Kernel::OM->Get('Kernel::System::Valid')->ValidIDsGet() ) {
-            if ( $_ eq $Data{ValidID} ) {
-                $Hit = 1;
-            }
+            $IsValid = 1;    # got a hit
+
+            last VALID_ID;
         }
 
-        if ( !$Hit ) {
+        if ( !$IsValid ) {
 
             # set cache
             $Kernel::OM->Get('Kernel::System::Cache')->Set(
@@ -239,6 +240,7 @@ sub GetUserData {
                 Key   => $CacheKey,
                 Value => {},
             );
+
             return;
         }
     }
@@ -284,7 +286,7 @@ sub GetUserData {
     }
 
     # out of office check
-    if ( !$Param{NoOutOfOffice} ) {
+    if ( !$NoOutOfOffice ) {
         if ( $Preferences{OutOfOffice} ) {
 
             my $CurrentTimeObject = $Kernel::OM->Create('Kernel::System::DateTime');
@@ -378,7 +380,7 @@ sub GetUserData {
         }
     }
 
-    # merge hash
+    # merge hash, this adds UserEmail to %Data
     %Data = ( %Data, %Preferences );
 
     # add preferences defaults
@@ -388,7 +390,7 @@ sub GetUserData {
         KEY:
         for my $Key ( sort keys %{$Config} ) {
 
-            next KEY if !defined $Config->{$Key}->{DataSelected};
+            next KEY unless defined $Config->{$Key}->{DataSelected};
 
             # check if data is defined
             next KEY if defined $Data{ $Config->{$Key}->{PrefKey} };

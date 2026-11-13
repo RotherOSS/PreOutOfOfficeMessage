@@ -7,6 +7,7 @@
     <URL>https://otobo.io/</URL>
     <License>GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007</License>
     <Description Lang="en">Provides a feature to inform with a given number of days in advance about a user going out of office.</Description>
+    <Description Lang="hu">Funkciót biztosít arra, hogy adott számú nappal előre értesítsen arról, hogy egy felhasználó irodán kívül lesz.</Description>
     <Filelist>
         <File Permission="660" Location="Custom/Kernel/System/User.pm" />
         <File Permission="660" Location="Kernel/Config/Files/XML/PreOutOfOfficeMessage.xml" />
